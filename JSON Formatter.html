@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.13);
+  --text: #1a1917;
+  --text-muted: #78756e;
+  --text-subtle: #a8a49c;
+  --accent: #1a1917;
+  --accent-fg: #ffffff;
+  --btn-secondary-bg: #f0efe9;
+  --btn-secondary-hover: #e5e3db;
+
+  --key: #b5006e;
+  --string: #1a7a1a;
+  --number: #0052cc;
+  --boolean: #c45000;
+  --null: #cc1111;
+  --brace: #888;
+
+  --success-bg: #edfaf0;
+  --success-text: #166534;
+  --error-bg: #fff0f0;
+  --error-text: #991b1b;
+
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.07);
+}
+
+[data-theme="dark"] {
+  --bg: #141210;
+  --surface: #1e1c19;
+  --surface2: #252320;
+  --border: rgba(255,255,255,0.07);
+  --border-strong: rgba(255,255,255,0.14);
+  --text: #f0ede8;
+  --text-muted: #998f82;
+  --text-subtle: #635c54;
+  --accent: #f0ede8;
+  --accent-fg: #141210;
+  --btn-secondary-bg: #252320;
+  --btn-secondary-hover: #2e2b27;
+
+  --key: #f472b6;
+  --string: #6ee7a0;
+  --number: #7eb8f7;
+  --boolean: #fb923c;
+  --null: #f87171;
+  --brace: #7a736a;
+
+  --success-bg: #0d2016;
+  --success-text: #4ade80;
+  --error-bg: #1e0d0d;
+  --error-text: #f87171;
+
+  --shadow: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.15);
+  --shadow-lg: 0 2px 8px rgba(0,0,0,0.2), 0 12px 40px rgba(0,0,0,0.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* HEADER */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 8px;
+}
+
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  background: var(--text);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: var(--accent-fg);
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border-strong);
+  margin: 0 4px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: var(--text);
+  color: var(--accent-fg);
+  border-color: var(--text);
+}
+.btn-primary:hover { opacity: 0.85; }
+
+.btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
+.btn-secondary:hover { background: var(--btn-secondary-hover); color: var(--text); }
+
+.btn-success {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border-color: rgba(22,101,52,0.15);
+}
+.btn-success:hover { filter: brightness(0.96); }
+
+.btn-danger {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border-color: rgba(153,27,27,0.15);
+}
+.btn-danger:hover { filter: brightness(0.96); }
+
+.btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.spacer { flex: 1; }
+
+/* CONTAINER */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* STATUS */
+#status {
+  display: none;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.success-msg {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid rgba(22,101,52,0.12);
+}
+
+.error-msg {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid rgba(153,27,27,0.12);
+}
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-subtle);
+}
+
+/* SEARCH */
+.search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.search-input-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+  display: flex;
+}
+
+.search-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 9px 12px 9px 32px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+#searchInput::placeholder { color: var(--text-subtle); }
+#searchInput:focus { border-color: var(--text); }
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+}
+
+.card-badge {
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-family: 'DM Mono', monospace;
+}
+
+.editor {
+  flex: 1;
+  width: 100%;
+  min-height: 480px;
+  border: none;
+  resize: vertical;
+  outline: none;
+  padding: 16px;
+  background: transparent;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.editor::placeholder { color: var(--text-subtle); }
+
+.output {
+  min-height: 480px;
+  padding: 16px;
+  overflow: auto;
+  font-family: 'DM Mono', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.7;
+  font-size: 13px;
+  flex: 1;
+}
+
+/* Syntax */
+.key    { color: var(--key); }
+.string { color: var(--string); }
+.number { color: var(--number); }
+.boolean { color: var(--boolean); }
+.null   { color: var(--null); }
+.brace  { color: var(--brace); }
+
+mark {
+  background: #fde047;
+  color: #1a1917;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 200;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* FILE INPUT */
+#fileInput { display: none; }
+
+/* RESPONSIVE */
+@media (max-width: 800px) {
+  .grid { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .toolbar { gap: 4px; }
+  .logo-text { display: none; }
+  .divider { display: none; }
+}
+
+@media (max-width: 500px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .toolbar { padding: 10px 14px; }
+  .container { padding: 14px 14px 32px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="toolbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M2 3C2 2.45 2.45 2 3 2h2v2H3V3zm0 8v2c0 .55.45 1 1 1h2v-2H3v-1H2zm9 3h2c.55 0 1-.45 1-1v-2h-2v1h-1v2zm1-12h-2v2h1v1h2V4c0-.55-.45-1-1-1zM5 5H4v6h1V5zm2 0h-.5v6H7V5zm2 0h-1v6h1V5zm2 0h-.5v6h.5V5z"/></svg>
+      </div>
+      <span class="logo-text">JSON Formatter</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-primary" id="beautifyBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 3h14v1.5H1V3zm2 3.5h10V8H3V6.5zm2 3.5h6v1.5H5V10z"/></svg>
+      Beautify
+    </button>
+
+    <button class="btn btn-secondary" id="minifyBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 3h14v1.5H1V3zm0 4h14v1.5H1V7zm0 4h14v1.5H1V11z"/></svg>
+      Minify
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-success" id="copyBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V9h-1v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h3V2H4zm5 0v1h2.293L7 7.293l.707.707L12 3.707V6h1V2h-4z"/></svg>
+      Copy
+    </button>
+
+    <button class="btn btn-secondary" id="downloadBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 11.5 3.5 7H6V2h4v5h2.5L8 11.5zM2 13h12v1.5H2V13z"/></svg>
+      Export
+    </button>
+
+    <button class="btn btn-secondary" id="uploadBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4.5 3.5 9H6v5h4V9h2.5L8 4.5zM2 13h12v1.5H2V13z"/></svg>
+      Import
+    </button>
+
+    <div class="divider"></div>
+
+    <button class="btn btn-danger" id="clearBtn">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 2l1-1h7l1 1H16v1.5H0V2h3.5zM2 5h12l-.8 9.1A1 1 0 0 1 12.2 15H3.8a1 1 0 0 1-1-.9L2 5zm4 2v6h1.5V7H6zm2.5 0v6H10V7H8.5z"/></svg>
+      Clear
+    </button>
+
+    <div class="spacer"></div>
+
+    <button class="btn btn-secondary" id="themeBtn" title="Toggle theme">
+      <svg viewBox="0 0 16 16" fill="currentColor" id="themeIcon"><path d="M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-1.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM7.25 1h1.5v2h-1.5V1zm0 12h1.5v2h-1.5v-2zM1 7.25h2v1.5H1v-1.5zm12 0h2v1.5h-2v-1.5zM2.697 3.757l1.06-1.06 1.415 1.414-1.06 1.06-1.415-1.414zm8.131 8.132 1.061-1.06 1.414 1.414-1.06 1.06-1.415-1.414zm1.415-9.546 1.06 1.06-1.414 1.415-1.06-1.06 1.414-1.415zM3.757 13.303l1.06 1.06-1.414 1.415-1.06-1.06 1.414-1.415z"/></svg>
+      Theme
+    </button>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json">
+
+<div class="container">
+
+  <div id="status" class="status"></div>
+
+  <div class="search-row">
+    <div class="search-input-wrap">
+      <span class="search-icon">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.868-3.834zM6.5 11a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+      </span>
+      <input type="text" id="searchInput" placeholder="Search in output…">
+    </div>
+    <button class="btn btn-secondary" id="searchBtn">Search</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-value" id="chars">0</span>
+      <span class="stat-label">Characters</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="lines">0</span>
+      <span class="stat-label">Lines</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="objects">0</span>
+      <span class="stat-label">Objects</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="arrays">0</span>
+      <span class="stat-label">Arrays</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="keys">0</span>
+      <span class="stat-label">Keys</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Input</span>
+        <span class="card-badge">JSON</span>
+      </div>
+      <textarea id="input" class="editor" placeholder="Paste your JSON here…"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Output</span>
+        <span class="card-badge" id="outputBadge">Formatted</span>
+      </div>
+      <pre id="output" class="output"></pre>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const input = document.getElementById("input");
+const output = document.getElementById("output");
+const statusBox = document.getElementById("status");
+let currentText = "";
+
+(function(){
+  const saved = localStorage.getItem("json-theme") || "light";
+  document.documentElement.setAttribute("data-theme", saved);
+})();
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+function showStatus(msg, type){
+  statusBox.style.display = "block";
+  statusBox.className = "status " + (type === "error" ? "error-msg" : "success-msg");
+  statusBox.textContent = msg;
+}
+
+function escapeHtml(str){
+  return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m]));
+}
+
+function syntaxHighlight(json){
+  let html = escapeHtml(json);
+  html = html.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?/g, function(m, p1, p2, p3){
+    return p3
+      ? `<span class="key">${p1}</span>${p3}`
+      : `<span class="string">${p1}</span>`;
+  });
+  html = html.replace(/\b(true|false)\b/g, '<span class="boolean">$1</span>');
+  html = html.replace(/\bnull\b/g, '<span class="null">$&</span>');
+  html = html.replace(/-?\d+(\.\d+)?([eE][+\-]?\d+)?/g, '<span class="number">$&</span>');
+  html = html.replace(/[{}[\]]/g, '<span class="brace">$&</span>');
+  return html;
+}
+
+function countStats(obj){
+  let objects = 0, arrays = 0, keys = 0;
+  function walk(v){
+    if(Array.isArray(v)){
+      arrays++;
+      v.forEach(walk);
+    } else if(v && typeof v === "object"){
+      objects++;
+      const ks = Object.keys(v);
+      keys += ks.length;
+      ks.forEach(k => walk(v[k]));
+    }
+  }
+  walk(obj);
+  document.getElementById("objects").textContent = objects;
+  document.getElementById("arrays").textContent = arrays;
+  document.getElementById("keys").textContent = keys;
+}
+
+function updateTextStats(text){
+  document.getElementById("chars").textContent = text.length;
+  document.getElementById("lines").textContent = text ? text.split("\n").length : 0;
+}
+
+function render(text, obj){
+  currentText = text;
+  output.innerHTML = syntaxHighlight(text);
+  updateTextStats(text);
+  countStats(obj);
+}
+
+function beautify(){
+  try {
+    const obj = JSON.parse(input.value);
+    const formatted = JSON.stringify(obj, null, 2);
+    render(formatted, obj);
+    document.getElementById("outputBadge").textContent = "Beautified";
+    showStatus("✓ Valid JSON — beautified successfully", "success");
+  } catch(e) {
+    showStatus("Invalid JSON: " + e.message, "error");
+  }
+}
+
+function minify(){
+  try {
+    const obj = JSON.parse(input.value);
+    const min = JSON.stringify(obj);
+    render(min, obj);
+    document.getElementById("outputBadge").textContent = "Minified";
+    showStatus("✓ JSON minified successfully", "success");
+  } catch(e) {
+    showStatus("Invalid JSON: " + e.message, "error");
+  }
+}
+
+document.getElementById("beautifyBtn").onclick = beautify;
+document.getElementById("minifyBtn").onclick = minify;
+
+document.getElementById("copyBtn").onclick = async () => {
+  if(!currentText) return;
+  await navigator.clipboard.writeText(currentText);
+  showToast("Copied to clipboard");
+};
+
+document.getElementById("downloadBtn").onclick = () => {
+  if(!currentText) return;
+  const blob = new Blob([currentText], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "formatted-" + Date.now() + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById("clearBtn").onclick = () => {
+  input.value = "";
+  output.innerHTML = "";
+  currentText = "";
+  statusBox.style.display = "none";
+  document.getElementById("outputBadge").textContent = "Formatted";
+  ["chars","lines","objects","arrays","keys"]
+    .forEach(id => document.getElementById(id).textContent = "0");
+};
+
+document.getElementById("uploadBtn").onclick = () => {
+  document.getElementById("fileInput").click();
+};
+
+document.getElementById("fileInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    input.value = reader.result;
+    updateTextStats(reader.result);
+    showToast("JSON file loaded");
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById("themeBtn").onclick = () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", current);
+  localStorage.setItem("json-theme", current);
+};
+
+document.getElementById("searchBtn").onclick = () => {
+  const term = document.getElementById("searchInput").value.trim();
+  if(!currentText || !term){
+    output.innerHTML = syntaxHighlight(currentText);
+    return;
+  }
+  const escaped = currentText.replace(
+    new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+    m => `@@MARK_START@@${m}@@MARK_END@@`
+  );
+  let html = syntaxHighlight(escaped);
+  html = html.replace(/@@MARK_START@@/g, "<mark>").replace(/@@MARK_END@@/g, "</mark>");
+  output.innerHTML = html;
+};
+
+input.addEventListener("input", () => {
+  updateTextStats(input.value);
+});
+</script>
+</body>
+</html>
